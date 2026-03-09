@@ -1,0 +1,174 @@
+{
+  "identity": {
+    "persona": "E1: The Anti-AI Designer",
+    "philosophy": [
+      "Fusion over Imitation: Mix disparate disciplines.",
+      "Emotion First: Design for feeling, not trend.",
+      "Content is King: Direct the user's emotion.",
+      "Zoom In: Intimacy through detail.",
+      "Negative Space: Breathing room is luxury."
+    ],
+    "anti_patterns": [
+      "Purple/Teal CTAs (Forbidden)",
+      "Inter font for headings (Forbidden)",
+      "Center-everything layouts",
+      "Gradient overload (>20%)",
+      "Generic 'SaaS Blue' primary colors",
+      "Default Vercel/Stripe aesthetic"
+    ]
+  },
+  "brand_core": {
+    "app_name": "MonetizeFlow",
+    "theme_mode": "light",
+    "emotional_archetype": "ARCHETYPE 4: SWISS & HIGH-CONTRAST",
+    "vibe": "Classy, Professional, High-Conversion, Trustworthy",
+    "keywords": ["Clarity", "Authority", "Growth", "Precision"]
+  },
+  "typography": {
+    "font_family_headings": "Outfit, sans-serif",
+    "font_family_body": "Public Sans, sans-serif",
+    "scale": {
+      "h1": "text-5xl md:text-6xl font-bold tracking-tight",
+      "h2": "text-4xl md:text-5xl font-semibold tracking-tight",
+      "h3": "text-2xl md:text-3xl font-medium tracking-normal",
+      "body_lg": "text-lg leading-relaxed",
+      "body": "text-base leading-relaxed text-zinc-600",
+      "caption": "text-sm text-zinc-500 uppercase tracking-widest"
+    },
+    "installation_guide": "Import 'Outfit' and 'Public Sans' from Google Fonts in index.css"
+  },
+  "colors": {
+    "palette_name": "Obsidian & Paper",
+    "primary": {
+      "DEFAULT": "#18181B",
+      "foreground": "#FAFAFA",
+      "description": "Zinc-950 for primary actions and strong brand presence. Classy and authoritative."
+    },
+    "secondary": {
+      "DEFAULT": "#F4F4F5",
+      "foreground": "#18181B",
+      "description": "Zinc-100 for secondary buttons and surfaces."
+    },
+    "accent": {
+      "DEFAULT": "#EA580C",
+      "foreground": "#FFFFFF",
+      "description": "Burnt Orange for high-intent conversion signals (e.g., 'Upgrade', 'Live Now')."
+    },
+    "background": {
+      "default": "#FFFFFF",
+      "subtle": "#FAFAFA",
+      "dashboard": "#F9FAFB"
+    },
+    "surface": {
+      "card": "#FFFFFF",
+      "border": "#E4E4E7",
+      "input": "#F4F4F5"
+    },
+    "functional": {
+      "success": "#10B981",
+      "warning": "#F59E0B",
+      "error": "#EF4444",
+      "info": "#3B82F6"
+    },
+    "forbidden_colors": ["#7351B7", "#1B93A4"]
+  },
+  "spacing_and_layout": {
+    "base_scale": "Generous (2-3x standard)",
+    "container_padding": "p-6 md:p-8 lg:p-12",
+    "grid_system": {
+      "marketing": "Grid Mode A (Tetris) - Asymmetrical 12-col grid.",
+      "dashboard": "Grid Mode B (High Density) - 4-col strict grid."
+    },
+    "border_radius": {
+      "outer": "rounded-xl",
+      "inner": "rounded-lg",
+      "button": "rounded-full"
+    }
+  },
+  "components": {
+    "buttons": {
+      "primary": "bg-primary text-primary-foreground hover:bg-zinc-800 shadow-sm rounded-full px-8 py-6 text-base font-medium transition-transform active:scale-95",
+      "secondary": "bg-secondary text-secondary-foreground hover:bg-zinc-200 rounded-full px-6 py-4 font-medium",
+      "ghost": "hover:bg-zinc-100 text-zinc-600 hover:text-zinc-900 rounded-full",
+      "cta_special": "bg-accent text-accent-foreground hover:bg-orange-700 shadow-lg shadow-orange-500/20 rounded-full px-10 py-6 text-lg font-bold"
+    },
+    "cards": {
+      "dashboard": "bg-white border border-zinc-100 shadow-sm hover:shadow-md transition-shadow duration-200 rounded-xl p-6",
+      "feature": "bg-zinc-50 border-none rounded-2xl p-8 hover:bg-white hover:shadow-xl transition-all duration-300 group"
+    },
+    "inputs": {
+      "style": "bg-zinc-50 border-transparent focus:border-zinc-300 focus:bg-white focus:ring-2 focus:ring-zinc-100 rounded-lg h-12 transition-all",
+      "labels": "text-sm font-medium text-zinc-700 mb-2 block"
+    }
+  },
+  "motion_and_interaction": {
+    "philosophy": "Micro-interactions are mandatory. No static elements.",
+    "hover_states": "translate-y-[-2px] or scale-[1.02] on interactive cards.",
+    "page_transitions": "Smooth fade-in-up (opacity-0 translate-y-4 -> opacity-100 translate-y-0).",
+    "libraries": ["framer-motion", "sonner"]
+  },
+  "assets": {
+    "icons": {
+      "primary_set": "phosphor-icons/react",
+      "style": "Regular or Duotone",
+      "size": "w-5 h-5 or w-6 h-6"
+    },
+    "image_urls": {
+      "hero_creative": {
+        "url": "https://images.unsplash.com/photo-1758874384722-ab97b4c9af89?crop=entropy&cs=srgb&fm=jpg&q=85",
+        "description": "Young woman creator with headphones, focus and professional.",
+        "usage": "Landing page hero or webinar host profile."
+      },
+      "dashboard_user": {
+        "url": "https://images.unsplash.com/photo-1758874573562-5bf0c1a7fc72?crop=entropy&cs=srgb&fm=jpg&q=85",
+        "description": "Man smiling while working on laptop.",
+        "usage": "Testimonial or 'Success' state in dashboard."
+      },
+      "creator_workspace": {
+        "url": "https://images.unsplash.com/photo-1758876017801-f5a892ee460a?crop=entropy&cs=srgb&fm=jpg&q=85",
+        "description": "Woman working in modern office.",
+        "usage": "Course builder introduction or team section."
+      },
+      "abstract_analytics": {
+        "url": "https://images.unsplash.com/photo-1760336472685-4c3f0dd8d204?crop=entropy&cs=srgb&fm=jpg&q=85",
+        "description": "Abstract composition of curved white paper and sphere.",
+        "usage": "Background element for 'AI Insights' or Analytics section."
+      },
+      "geometric_shapes": {
+        "url": "https://images.unsplash.com/photo-1759157403849-f06d8221e258?crop=entropy&cs=srgb&fm=jpg&q=85",
+        "description": "Three stacked beige cubes.",
+        "usage": "Subtle decoration for 'Cohorts' or 'Segments' features."
+      }
+    }
+  },
+  "specific_pages": {
+    "landing_page_builder": {
+      "guideline": "Maximize canvas area. Use floating toolbars (glassmorphism) to keep focus on content. Use 'Grid Mode A' for templates.",
+      "visuals": "Paper textures, crisp shadows, distinct boundaries between 'Editor' and 'Preview'."
+    },
+    "analytics_dashboard": {
+      "guideline": "Use 'Grid Mode B'. White cards on soft gray background. 'Stripe-like' metric summaries. AI insights should appear as 'magic' notifications (e.g., sparkling icon + soft gradient border).",
+      "charts": "Minimalist. Thin lines. No grid lines on charts if possible. Use tooltips for data details."
+    },
+    "lead_management": {
+      "guideline": "Table/List view but highly visual. Use badges for 'High Intent' (Green/Emerald) vs 'Low Intent' (Gray). Avatars for every lead if available."
+    }
+  },
+  "instructions_to_main_agent": [
+    "1. Setup Tailwind theme colors in tailwind.config.js immediately using the 'Obsidian & Paper' palette.",
+    "2. Install 'framer-motion', 'sonner', '@phosphor-icons/react', 'recharts' (for analytics).",
+    "3. Create a 'Layout' wrapper that handles the Sidebar (Dashboard) vs Full Width (Landing) logic.",
+    "4. For the 'Landing Page Builder', do not build a complex drag-and-drop from scratch if too hard; use a 'Block-based' editor approach (Left sidebar: Blocks, Right: Preview).",
+    "5. Use the provided Image URLs for ALL placeholder images. Do not leave empty gray boxes.",
+    "6. Ensure all buttons have 'active:scale-95' and 'hover' states defined.",
+    "7. Add 'data-testid' to every interactive element.",
+    "8. Use 'Outfit' for all Headings and 'Public Sans' for body text."
+  ],
+  "universal_guidelines": [
+    "No gradients for dark colors.",
+    "No 'App { text-align: center }'.",
+    "Use glass-morphism (backdrop-blur-xl) for sticky headers and floating tools.",
+    "Z-index hierarchy is key for the Builder interface.",
+    "Smooth scrolling (Lenis) recommended for the Marketing Site."
+  ]
+}
