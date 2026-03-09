@@ -28,14 +28,22 @@ const LandingPageBuilder = () => {
     try {
       // Fetch background image from Unsplash based on course topic
       const keywords = formData.course_name.toLowerCase().split(' ').slice(0, 2).join(' ');
-      const imageResponse = await axios.get(`https://api.unsplash.com/photos/random`, {
-        params: {
-          query: keywords || 'education',
-          orientation: 'landscape',
-          client_id: 'FsB7LAAkKBI_kUA0f9FO3SOPbRPzO-eexGhKMEYk-Z0'
-        }
-      });
-      const bgImage = imageResponse.data.urls.regular;
+      let bgImage = '';
+      
+      try {
+        const imageResponse = await axios.get(`https://api.unsplash.com/photos/random`, {
+          params: {
+            query: keywords || 'education',
+            orientation: 'landscape',
+            client_id: 'FsB7LAAkKBI_kUA0f9FO3SOPbRPzO-eexGhKMEYk-Z0'
+          }
+        });
+        bgImage = imageResponse.data.urls.regular;
+      } catch (imgError) {
+        console.error('Unsplash error:', imgError);
+        bgImage = 'https://images.unsplash.com/photo-1516321318423-f06f85e504b3?w=1200';
+      }
+      
       setBackgroundImage(bgImage);
 
       // Generate form fields with AI
@@ -45,9 +53,11 @@ const LandingPageBuilder = () => {
       });
       
       setPreviewData(response.data);
-      toast.success('Preview generated! Review before creating landing page.');
+      toast.success('✨ Preview generated! Review and click "Create Landing Page" to publish.');
     } catch (error) {
-      toast.error('Failed to generate preview');
+      console.error('Preview generation error:', error);
+      const errorMsg = error.response?.data?.detail || error.message || 'Failed to generate preview';
+      toast.error(`❌ Error: ${errorMsg}`);
     } finally {
       setGeneratingPreview(false);
     }

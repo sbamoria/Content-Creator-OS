@@ -45,9 +45,11 @@ const Analytics = () => {
         newInsights[stage] = response.data.insight;
       }
       setInsights(newInsights);
-      toast.success('AI insights generated!');
+      toast.success('✅ AI insights generated successfully!');
     } catch (error) {
-      toast.error('Failed to generate insights');
+      console.error('Insights error:', error);
+      const errorMsg = error.response?.data?.detail || error.message || 'Failed to generate insights';
+      toast.error(`❌ ${errorMsg}`);
     } finally {
       setGeneratingInsights(false);
     }

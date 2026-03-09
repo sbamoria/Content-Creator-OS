@@ -19,13 +19,15 @@ const Auth = () => {
     try {
       if (isLogin) {
         await login(email, password);
-        toast.success('Welcome back!');
+        toast.success('✅ Welcome back!');
       } else {
         await register(name, email, password);
-        toast.success('Account created successfully!');
+        toast.success('✅ Account created successfully!');
       }
     } catch (error) {
-      toast.error(error.response?.data?.detail || 'Authentication failed');
+      console.error('Auth error:', error);
+      const errorMsg = error.response?.data?.detail || error.message || 'Authentication failed';
+      toast.error(`❌ ${errorMsg}`);
     } finally {
       setLoading(false);
     }

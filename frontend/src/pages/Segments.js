@@ -37,17 +37,19 @@ const Segments = () => {
     try {
       if (editingSegment) {
         await axios.put(`${API_URL}/segments/${editingSegment.id}`, formData);
-        toast.success('Segment updated successfully');
+        toast.success('✅ Segment updated successfully');
       } else {
         await axios.post(`${API_URL}/segments`, formData);
-        toast.success('Segment created successfully');
+        toast.success('✅ Segment created successfully');
       }
       setShowCreate(false);
       setEditingSegment(null);
       setFormData({ name: '', intent_filter: '' });
       await fetchSegments();
     } catch (error) {
-      toast.error(`Failed to ${editingSegment ? 'update' : 'create'} segment`);
+      console.error('Segment error:', error);
+      const errorMsg = error.response?.data?.detail || error.message || `Failed to ${editingSegment ? 'update' : 'create'} segment`;
+      toast.error(`❌ ${errorMsg}`);
     }
   };
 

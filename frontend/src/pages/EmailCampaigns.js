@@ -39,14 +39,17 @@ const EmailCampaigns = () => {
 
     try {
       const response = await axios.post(`${API_URL}/campaigns/broadcast`, formData);
-      toast.success(response.data.message || 'Campaign sent successfully!');
+      const data = response.data;
+      toast.success(`✅ ${data.message || 'Campaign sent successfully!'}`);
       setFormData({ segment_id: '', subject: '', html_content: '' });
       
       // Refresh campaign history
       const campaignsRes = await axios.get(`${API_URL}/campaigns`);
       setCampaigns(campaignsRes.data);
     } catch (error) {
-      toast.error(error.response?.data?.detail || 'Failed to send campaign');
+      console.error('Campaign error:', error);
+      const errorMsg = error.response?.data?.detail || error.message || 'Failed to send campaign';
+      toast.error(`❌ ${errorMsg}`);
     } finally {
       setSending(false);
     }
