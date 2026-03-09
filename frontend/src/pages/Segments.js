@@ -11,6 +11,7 @@ const Segments = () => {
   const [segments, setSegments] = useState([]);
   const [loading, setLoading] = useState(true);
   const [showCreate, setShowCreate] = useState(false);
+  const [editingSegment, setEditingSegment] = useState(null);
   const [formData, setFormData] = useState({
     name: '',
     intent_filter: ''
@@ -34,14 +35,29 @@ const Segments = () => {
   const handleCreate = async (e) => {
     e.preventDefault();
     try {
-      await axios.post(`${API_URL}/segments`, formData);
-      toast.success('Segment created successfully');
+      if (editingSegment) {
+        await axios.put(`${API_URL}/segments/${editingSegment.id}`, formData);
+        toast.success('Segment updated successfully');
+      } else {
+        await axios.post(`${API_URL}/segments`, formData);
+        toast.success('Segment created successfully');
+      }
       setShowCreate(false);
+      setEditingSegment(null);
       setFormData({ name: '', intent_filter: '' });
       await fetchSegments();
     } catch (error) {
-      toast.error('Failed to create segment');
+      toast.error(`Failed to ${editingSegment ? 'update' : 'create'} segment`);
     }
+  };
+
+  const handleEdit = (segment) => {
+    setEditingSegment(segment);
+    setFormData({
+      name: segment.name,
+      intent_filter: segment.intent_filter || ''
+    });
+    setShowCreate(true);
   };
 
   return (
@@ -53,7 +69,11 @@ const Segments = () => {
             <p className="text-zinc-600">Organize leads into targeted cohorts</p>
           </div>
           <button
-            onClick={() => setShowCreate(!showCreate)}
+            onClick={() => {
+              setShowCreate(!showCreate);
+              setEditingSegment(null);
+              setFormData({ name: '', intent_filter: '' });
+            }}
             data-testid="create-segment-button"
             className="flex items-center gap-2 bg-primary text-primary-foreground hover:bg-zinc-800 rounded-full px-6 py-3 font-medium transition-all active:scale-95"
           >
@@ -68,7 +88,7 @@ const Segments = () => {
             animate={{ opacity: 1, y: 0 }}
             className="bg-white rounded-xl p-6 border border-surface-border shadow-sm mb-6"
           >
-            <h2 className="text-xl font-heading font-semibold text-primary mb-4">New Segment</h2>
+            <h2 className="text-xl font-heading font-semibold text-primary mb-4">{editingSegment ? 'Edit Segment' : 'New Segment'}</h2>
             <form onSubmit={handleCreate} className="space-y-4">
               <div>
                 <label className="text-sm font-medium text-zinc-700 mb-2 block">Segment Name</label>
@@ -104,11 +124,15 @@ const Segments = () => {
                   data-testid="submit-segment"
                   className="bg-primary text-primary-foreground hover:bg-zinc-800 rounded-full px-6 py-2 font-medium transition-all active:scale-95"
                 >
-                  Create
+                  {editingSegment ? 'Update' : 'Create'}
                 </button>
                 <button
                   type="button"
-                  onClick={() => setShowCreate(false)}
+                  onClick={() => {
+                    setShowCreate(false);
+                    setEditingSegment(null);
+                    setFormData({ name: '', intent_filter: '' });
+                  }}
                   className="bg-zinc-100 text-zinc-700 hover:bg-zinc-200 rounded-full px-6 py-2 font-medium transition-all"
                 >
                   Cancel
@@ -140,12 +164,21 @@ const Segments = () => {
                 className="bg-white rounded-xl p-6 border border-surface-border shadow-sm hover:shadow-md transition-all"
               >
                 <div className="flex items-start justify-between mb-4">
-                  <h3 className="text-lg font-heading font-semibold text-primary">{segment.name}</h3>
-                  {segment.intent_filter && (
-                    <span className="px-2 py-1 rounded-full bg-zinc-100 text-zinc-600 text-xs font-medium">
-                      {segment.intent_filter}
-                    </span>
-                  )}
+                  <h3 className="text-lg font-heading font-semibold text-primary flex-1">{segment.name}</h3>
+                  <div className="flex items-center gap-2">
+                    {segment.intent_filter && (
+                      <span className="px-2 py-1 rounded-full bg-zinc-100 text-zinc-600 text-xs font-medium">
+                        {segment.intent_filter}
+                      </span>
+                    )}
+                    <button
+                      onClick={() => handleEdit(segment)}
+                      className="text-sm text-zinc-600 hover:text-primary transition-colors"
+                      data-testid={`edit-segment-${idx}`}
+                    >
+                      Edit
+                    </button>
+                  </div>
                 </div>
                 <div className="flex items-center gap-2 text-zinc-600">
                   <Users size={20} />

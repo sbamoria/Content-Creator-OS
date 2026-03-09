@@ -65,10 +65,10 @@ const Analytics = () => {
   }
 
   const funnelData = [
-    { name: 'Total Leads', value: stats?.total_leads || 0, color: '#3B82F6' },
-    { name: 'High Intent', value: stats?.high_intent || 0, color: '#10B981' },
-    { name: 'Webinar Signups', value: stats?.webinar_signups || 0, color: '#F59E0B' },
-    { name: 'Purchases', value: stats?.purchases || 0, color: '#EA580C' },
+    { name: 'Total Leads', value: stats?.total_leads || 0, color: '#3B82F6', gradient: 'url(#blueGradient)' },
+    { name: 'High Intent', value: stats?.high_intent || 0, color: '#10B981', gradient: 'url(#greenGradient)' },
+    { name: 'Webinar Signups', value: stats?.webinar_signups || 0, color: '#F59E0B', gradient: 'url(#orangeGradient)' },
+    { name: 'Purchases', value: stats?.purchases || 0, color: '#EA580C', gradient: 'url(#redGradient)' },
   ];
 
   const conversionRate = stats?.total_leads > 0
@@ -159,12 +159,37 @@ const Analytics = () => {
             <h2 className="text-xl font-heading font-semibold text-primary mb-6">Conversion Funnel</h2>
             <ResponsiveContainer width="100%" height={300}>
               <BarChart data={funnelData}>
-                <XAxis dataKey="name" tick={{ fontSize: 12 }} />
-                <YAxis tick={{ fontSize: 12 }} />
-                <Tooltip />
-                <Bar dataKey="value" radius={[8, 8, 0, 0]}>
+                <defs>
+                  <linearGradient id="blueGradient" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="0%" stopColor="#3B82F6" stopOpacity={0.8}/>
+                    <stop offset="100%" stopColor="#3B82F6" stopOpacity={0.3}/>
+                  </linearGradient>
+                  <linearGradient id="greenGradient" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="0%" stopColor="#10B981" stopOpacity={0.8}/>
+                    <stop offset="100%" stopColor="#10B981" stopOpacity={0.3}/>
+                  </linearGradient>
+                  <linearGradient id="orangeGradient" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="0%" stopColor="#F59E0B" stopOpacity={0.8}/>
+                    <stop offset="100%" stopColor="#F59E0B" stopOpacity={0.3}/>
+                  </linearGradient>
+                  <linearGradient id="redGradient" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="0%" stopColor="#EA580C" stopOpacity={0.8}/>
+                    <stop offset="100%" stopColor="#EA580C" stopOpacity={0.3}/>
+                  </linearGradient>
+                </defs>
+                <XAxis dataKey="name" tick={{ fontSize: 12, fill: '#52525B' }} />
+                <YAxis tick={{ fontSize: 12, fill: '#52525B' }} />
+                <Tooltip 
+                  contentStyle={{ 
+                    backgroundColor: '#18181B', 
+                    border: 'none', 
+                    borderRadius: '8px',
+                    color: '#FAFAFA'
+                  }}
+                />
+                <Bar dataKey="value" radius={[12, 12, 0, 0]}>
                   {funnelData.map((entry, index) => (
-                    <Cell key={`cell-${index}`} fill={entry.color} />
+                    <Cell key={`cell-${index}`} fill={entry.gradient} stroke={entry.color} strokeWidth={2} />
                   ))}
                 </Bar>
               </BarChart>
@@ -194,9 +219,9 @@ const Analytics = () => {
                   <span className="text-sm font-medium text-zinc-700">High Intent</span>
                   <span className="text-sm font-bold text-emerald-600">{stats?.high_intent || 0}</span>
                 </div>
-                <div className="w-full bg-zinc-100 rounded-full h-3 overflow-hidden">
+                <div className="w-full bg-zinc-100 rounded-full h-4 overflow-hidden shadow-inner">
                   <div
-                    className="bg-emerald-500 h-full rounded-full transition-all duration-500"
+                    className="bg-gradient-to-r from-emerald-400 to-emerald-600 h-full rounded-full transition-all duration-500 shadow-lg"
                     style={{ width: `${stats?.total_leads > 0 ? (stats.high_intent / stats.total_leads * 100) : 0}%` }}
                   />
                 </div>
@@ -207,9 +232,9 @@ const Analytics = () => {
                   <span className="text-sm font-medium text-zinc-700">Medium Intent</span>
                   <span className="text-sm font-bold text-amber-600">{stats?.medium_intent || 0}</span>
                 </div>
-                <div className="w-full bg-zinc-100 rounded-full h-3 overflow-hidden">
+                <div className="w-full bg-zinc-100 rounded-full h-4 overflow-hidden shadow-inner">
                   <div
-                    className="bg-amber-500 h-full rounded-full transition-all duration-500"
+                    className="bg-gradient-to-r from-amber-400 to-amber-600 h-full rounded-full transition-all duration-500 shadow-lg"
                     style={{ width: `${stats?.total_leads > 0 ? (stats.medium_intent / stats.total_leads * 100) : 0}%` }}
                   />
                 </div>
@@ -220,9 +245,9 @@ const Analytics = () => {
                   <span className="text-sm font-medium text-zinc-700">Low Intent</span>
                   <span className="text-sm font-bold text-zinc-600">{stats?.low_intent || 0}</span>
                 </div>
-                <div className="w-full bg-zinc-100 rounded-full h-3 overflow-hidden">
+                <div className="w-full bg-zinc-100 rounded-full h-4 overflow-hidden shadow-inner">
                   <div
-                    className="bg-zinc-400 h-full rounded-full transition-all duration-500"
+                    className="bg-gradient-to-r from-zinc-300 to-zinc-500 h-full rounded-full transition-all duration-500 shadow-lg"
                     style={{ width: `${stats?.total_leads > 0 ? (stats.low_intent / stats.total_leads * 100) : 0}%` }}
                   />
                 </div>

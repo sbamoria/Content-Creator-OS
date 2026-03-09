@@ -9,6 +9,7 @@ const API_URL = `${process.env.REACT_APP_BACKEND_URL}/api`;
 
 const EmailCampaigns = () => {
   const [segments, setSegments] = useState([]);
+  const [campaigns, setCampaigns] = useState([]);
   const [formData, setFormData] = useState({
     segment_id: '',
     subject: '',
@@ -17,15 +18,19 @@ const EmailCampaigns = () => {
   const [sending, setSending] = useState(false);
 
   useEffect(() => {
-    const fetchSegments = async () => {
+    const fetchData = async () => {
       try {
-        const response = await axios.get(`${API_URL}/segments`);
-        setSegments(response.data);
+        const [segmentsRes, campaignsRes] = await Promise.all([
+          axios.get(`${API_URL}/segments`),
+          axios.get(`${API_URL}/campaigns`)
+        ]);
+        setSegments(segmentsRes.data);
+        setCampaigns(campaignsRes.data);
       } catch (error) {
-        toast.error('Failed to load segments');
+        toast.error('Failed to load data');
       }
     };
-    fetchSegments();
+    fetchData();
   }, []);
 
   const handleSend = async (e) => {
@@ -34,10 +39,14 @@ const EmailCampaigns = () => {
 
     try {
       const response = await axios.post(`${API_URL}/campaigns/broadcast`, formData);
-      toast.success(response.data.message || 'Emails sent successfully');
+      toast.success(response.data.message || 'Campaign sent successfully!');
       setFormData({ segment_id: '', subject: '', html_content: '' });
+      
+      // Refresh campaign history
+      const campaignsRes = await axios.get(`${API_URL}/campaigns`);
+      setCampaigns(campaignsRes.data);
     } catch (error) {
-      toast.error(error.response?.data?.detail || 'Failed to send emails');
+      toast.error(error.response?.data?.detail || 'Failed to send campaign');
     } finally {
       setSending(false);
     }
@@ -161,6 +170,34 @@ const EmailCampaigns = () => {
           </motion.div>
         </div>
       </div>
+
+      {/* Campaign History */}
+      {campaigns.length > 0 && (
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="bg-white rounded-xl p-8 border border-surface-border shadow-sm mt-8"
+        >
+          <h2 className="text-xl font-heading font-semibold text-primary mb-6">Campaign History</h2>
+          <div className="space-y-4">
+            {campaigns.map((campaign, idx) => (
+              <div key={campaign.id} className="flex items-center justify-between p-4 bg-zinc-50 rounded-lg">
+                <div className="flex-1">
+                  <h3 className="font-medium text-zinc-900">{campaign.subject}</h3>
+                  <p className="text-sm text-zinc-600">Segment: {campaign.segment_name}</p>
+                  <p className="text-xs text-zinc-500 mt-1">
+                    {new Date(campaign.created_at).toLocaleString()}
+                  </p>
+                </div>
+                <div className="text-right">
+                  <p className="text-2xl font-heading font-bold text-primary">{campaign.sent_count}</p>
+                  <p className="text-xs text-zinc-500">emails sent</p>
+                </div>
+              </div>
+            ))}
+          </div>
+        </motion.div>
+      )}
     </Layout>
   );
 };

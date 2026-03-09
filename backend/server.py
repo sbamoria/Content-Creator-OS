@@ -109,6 +109,19 @@ class EmailCampaign(BaseModel):
     subject: str
     html_content: str
 
+class Campaign(BaseModel):
+    id: str
+    creator_id: str
+    segment_id: str
+    segment_name: str
+    subject: str
+    sent_count: int
+    created_at: str
+
+class SegmentUpdate(BaseModel):
+    name: Optional[str] = None
+    intent_filter: Optional[str] = None
+
 class Webinar(BaseModel):
     id: str
     creator_id: str
@@ -175,6 +188,10 @@ async def get_current_user(credentials: HTTPAuthorizationCredentials = Depends(s
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid token")
 
 # ==================== AUTH ROUTES ====================
+
+@api_router.get("/")
+async def root():
+    return {"message": "MonetizeFlow API"}
 
 @api_router.post("/auth/register", response_model=TokenResponse)
 async def register(user_data: UserCreate):
@@ -326,34 +343,53 @@ async def get_leads(landing_page_id: Optional[str] = None, intent_level: Optiona
 @api_router.post("/leads/classify")
 async def classify_leads(creator_id: str = Depends(get_current_user)):
     # Get all leads for creator's landing pages
-    pages = await db.landing_pages.find({"creator_id": creator_id}, {"_id": 0, "id": 1}).to_list(100)
+    pages = await db.landing_pages.find({"creator_id": creator_id}, {"_id": 0, "id": 1, "course_price": 1}).to_list(100)
     page_ids = [p["id"] for p in pages]
+    page_prices = {p["id"]: p.get("course_price", 0) for p in pages}
     
     leads = await db.leads.find({"landing_page_id": {"$in": page_ids}, "intent_level": None}, {"_id": 0}).to_list(1000)
     
     if not leads:
-        return {"message": "No unclassified leads found"}
+        return {"message": "No unclassified leads found", "count": 0}
     
-    # Classify leads using AI
+    # Classify leads using AI with stricter criteria
+    classified = {"high": 0, "medium": 0, "low": 0}
+    
     for lead in leads:
-        prompt = f"""Classify this lead's intent level as 'high', 'medium', or 'low' based on their responses.
+        course_price = page_prices.get(lead['landing_page_id'], 0)
+        
+        prompt = f"""You are a strict lead qualification expert. Classify this lead's purchase intent as 'high', 'medium', or 'low'.
 
-Lead Responses:
-{lead['responses']}
+Course Price: ${course_price}
+Lead Responses: {lead['responses']}
 
-Consider:
-- Budget alignment (higher budget = higher intent)
-- Timeline urgency (sooner = higher intent)
-- Specific goals/pain points (detailed = higher intent)
-- Experience level (may indicate readiness)
+STRICT CRITERIA:
+HIGH intent (only ~20% of leads):
+- Budget significantly exceeds course price OR explicitly mentions high budget tier
+- Timeline is "immediately" or "within 1 week"
+- Detailed, specific goals showing deep understanding of needs
+- Advanced experience level seeking to level up
 
+MEDIUM intent (~50% of leads):
+- Budget aligns with course price OR mid-range budget option
+- Timeline is "within 1 month" or "2-3 months"
+- Clear but general goals
+- Intermediate experience level
+
+LOW intent (~30% of leads):
+- Budget well below course price OR lowest budget option
+- Timeline is vague, "someday", or "6+ months"
+- Vague goals or just browsing
+- Complete beginner with no urgency
+
+Be CRITICAL and REALISTIC. Most leads are medium or low intent.
 Respond with ONLY one word: high, medium, or low"""
         
         try:
             chat = LlmChat(
                 api_key=os.getenv('EMERGENT_LLM_KEY'),
                 session_id=f"classify_{lead['id']}",
-                system_message="You are a lead qualification expert. Respond with only: high, medium, or low."
+                system_message="You are a strict lead qualification expert. Be critical and realistic. Only 20% should be high intent."
             ).with_model("anthropic", "claude-sonnet-4-5-20250929")
             
             response = await chat.send_message(UserMessage(text=prompt))
@@ -361,6 +397,8 @@ Respond with ONLY one word: high, medium, or low"""
             
             if intent_level not in ['high', 'medium', 'low']:
                 intent_level = 'medium'
+            
+            classified[intent_level] += 1
             
             await db.leads.update_one(
                 {"id": lead["id"]},
@@ -372,8 +410,13 @@ Respond with ONLY one word: high, medium, or low"""
                 {"id": lead["id"]},
                 {"$set": {"intent_level": "medium"}}
             )
+            classified["medium"] += 1
     
-    return {"message": f"Classified {len(leads)} leads", "count": len(leads)}
+    return {
+        "message": f"Classified {len(leads)} leads",
+        "count": len(leads),
+        "breakdown": classified
+    }
 
 # ==================== SEGMENT ROUTES ====================
 
@@ -408,6 +451,36 @@ async def get_segments(creator_id: str = Depends(get_current_user)):
     segments = await db.segments.find({"creator_id": creator_id}, {"_id": 0}).to_list(100)
     return [Segment(**seg) for seg in segments]
 
+@api_router.put("/segments/{segment_id}", response_model=Segment)
+async def update_segment(segment_id: str, data: SegmentUpdate, creator_id: str = Depends(get_current_user)):
+    # Get existing segment
+    segment = await db.segments.find_one({"id": segment_id, "creator_id": creator_id}, {"_id": 0})
+    if not segment:
+        raise HTTPException(status_code=404, detail="Segment not found")
+    
+    # Update fields
+    update_data = {}
+    if data.name:
+        update_data["name"] = data.name
+    if data.intent_filter is not None:
+        update_data["intent_filter"] = data.intent_filter
+        
+        # Refresh lead_ids based on new filter
+        pages = await db.landing_pages.find({"creator_id": creator_id}, {"_id": 0, "id": 1}).to_list(100)
+        page_ids = [p["id"] for p in pages]
+        
+        query = {"landing_page_id": {"$in": page_ids}}
+        if data.intent_filter:
+            query["intent_level"] = data.intent_filter
+        
+        leads = await db.leads.find(query, {"_id": 0, "id": 1}).to_list(1000)
+        update_data["lead_ids"] = [lead["id"] for lead in leads]
+    
+    await db.segments.update_one({"id": segment_id}, {"$set": update_data})
+    
+    updated_segment = await db.segments.find_one({"id": segment_id}, {"_id": 0})
+    return Segment(**updated_segment)
+
 # ==================== EMAIL CAMPAIGN ROUTES ====================
 
 @api_router.post("/campaigns/broadcast")
@@ -421,8 +494,10 @@ async def send_broadcast_email(campaign: EmailCampaign, creator_id: str = Depend
     leads = await db.leads.find({"id": {"$in": segment["lead_ids"]}}, {"_id": 0}).to_list(1000)
     
     sent_count = 0
+    failed_count = 0
+    
     for lead in leads:
-        email = lead["responses"].get("email")
+        email = lead["responses"].get("email") or lead["responses"].get("email_address")
         if email:
             try:
                 params = {
@@ -435,8 +510,32 @@ async def send_broadcast_email(campaign: EmailCampaign, creator_id: str = Depend
                 sent_count += 1
             except Exception as e:
                 logger.error(f"Email send error to {email}: {str(e)}")
+                failed_count += 1
     
-    return {"message": f"Broadcast sent to {sent_count} leads", "sent_count": sent_count}
+    # Save campaign record
+    campaign_id = str(uuid.uuid4())
+    campaign_doc = {
+        "id": campaign_id,
+        "creator_id": creator_id,
+        "segment_id": campaign.segment_id,
+        "segment_name": segment["name"],
+        "subject": campaign.subject,
+        "sent_count": sent_count,
+        "failed_count": failed_count,
+        "created_at": datetime.now(timezone.utc).isoformat()
+    }
+    await db.campaigns.insert_one(campaign_doc)
+    
+    return {
+        "message": f"Campaign sent to {sent_count} leads" + (f" ({failed_count} failed)" if failed_count > 0 else ""),
+        "sent_count": sent_count,
+        "failed_count": failed_count
+    }
+
+@api_router.get("/campaigns", response_model=List[Campaign])
+async def get_campaigns(creator_id: str = Depends(get_current_user)):
+    campaigns = await db.campaigns.find({"creator_id": creator_id}, {"_id": 0}).sort("created_at", -1).to_list(100)
+    return [Campaign(**c) for c in campaigns]
 
 # ==================== WEBINAR ROUTES ====================
 

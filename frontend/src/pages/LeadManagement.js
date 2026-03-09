@@ -32,7 +32,12 @@ const LeadManagement = () => {
     setClassifying(true);
     try {
       const response = await axios.post(`${API_URL}/leads/classify`);
-      toast.success(response.data.message || 'Leads classified successfully');
+      const data = response.data;
+      if (data.breakdown) {
+        toast.success(`Classified ${data.count} leads: ${data.breakdown.high} high, ${data.breakdown.medium} medium, ${data.breakdown.low} low intent`);
+      } else {
+        toast.info(data.message || 'No unclassified leads found');
+      }
       await fetchLeads();
     } catch (error) {
       toast.error('Failed to classify leads');

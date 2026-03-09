@@ -16,31 +16,60 @@ const LandingPageBuilder = () => {
     course_price: ''
   });
   const [loading, setLoading] = useState(false);
+  const [generatingPreview, setGeneratingPreview] = useState(false);
+  const [previewData, setPreviewData] = useState(null);
   const [generatedPage, setGeneratedPage] = useState(null);
+  const [backgroundImage, setBackgroundImage] = useState('');
 
-  const handleSubmit = async (e) => {
+  const handleGeneratePreview = async (e) => {
     e.preventDefault();
-    setLoading(true);
+    setGeneratingPreview(true);
 
     try {
+      // Fetch background image from Unsplash based on course topic
+      const keywords = formData.course_name.toLowerCase().split(' ').slice(0, 2).join(' ');
+      const imageResponse = await axios.get(`https://api.unsplash.com/photos/random`, {
+        params: {
+          query: keywords || 'education',
+          orientation: 'landscape',
+          client_id: 'FsB7LAAkKBI_kUA0f9FO3SOPbRPzO-eexGhKMEYk-Z0'
+        }
+      });
+      const bgImage = imageResponse.data.urls.regular;
+      setBackgroundImage(bgImage);
+
+      // Generate form fields with AI
       const response = await axios.post(`${API_URL}/landing-pages`, {
         ...formData,
         course_price: parseFloat(formData.course_price)
       });
-      setGeneratedPage(response.data);
-      toast.success('Landing page created with AI-generated form!');
-      setFormData({
-        course_name: '',
-        course_description: '',
-        instructor_name: '',
-        target_audience: '',
-        course_price: ''
-      });
+      
+      setPreviewData(response.data);
+      toast.success('Preview generated! Review before creating landing page.');
     } catch (error) {
-      toast.error(error.response?.data?.detail || 'Failed to create landing page');
+      toast.error('Failed to generate preview');
     } finally {
-      setLoading(false);
+      setGeneratingPreview(false);
     }
+  };
+
+  const handleCreateLandingPage = () => {
+    if (!previewData) {
+      toast.error('Generate preview first');
+      return;
+    }
+    
+    setGeneratedPage(previewData);
+    setPreviewData(null);
+    toast.success('Landing page created! Share the URL with your audience.');
+    setFormData({
+      course_name: '',
+      course_description: '',
+      instructor_name: '',
+      target_audience: '',
+      course_price: ''
+    });
+    setBackgroundImage('');
   };
 
   const leadFormUrl = generatedPage ? `${window.location.origin}/lead/${generatedPage.id}` : '';
@@ -64,7 +93,7 @@ const LandingPageBuilder = () => {
               <h2 className="text-xl font-heading font-semibold text-primary">Course Details</h2>
             </div>
 
-            <form onSubmit={handleSubmit} className="space-y-4">
+            <form onSubmit={handleGeneratePreview} className="space-y-4">
               <div>
                 <label className="text-sm font-medium text-zinc-700 mb-2 block">Course Name</label>
                 <input
@@ -133,11 +162,11 @@ const LandingPageBuilder = () => {
 
               <button
                 type="submit"
-                disabled={loading}
-                data-testid="generate-landing-page-button"
+                disabled={generatingPreview}
+                data-testid="generate-preview-button"
                 className="w-full bg-primary text-primary-foreground hover:bg-zinc-800 rounded-full py-3 font-medium transition-all active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed mt-6"
               >
-                {loading ? 'Generating with AI...' : 'Generate Landing Page'}
+                {generatingPreview ? 'Generating Preview...' : 'Generate Preview with AI'}
               </button>
             </form>
           </motion.div>
@@ -149,21 +178,27 @@ const LandingPageBuilder = () => {
           >
             <h2 className="text-xl font-heading font-semibold text-primary mb-6">Preview</h2>
 
-            {generatedPage ? (
-              <div data-testid="generated-page-preview">
-                <div className="bg-zinc-50 rounded-lg p-6 mb-4">
-                  <h3 className="text-lg font-heading font-semibold text-primary mb-2">{generatedPage.course_name}</h3>
-                  <p className="text-sm text-zinc-600 mb-3">{generatedPage.course_description}</p>
-                  <div className="flex items-center justify-between text-sm">
-                    <span className="text-zinc-600">By {generatedPage.instructor_name}</span>
-                    <span className="text-accent font-bold">${generatedPage.course_price}</span>
+            {previewData ? (
+              <div data-testid="preview-section">
+                <div 
+                  className="bg-cover bg-center rounded-lg p-6 mb-4 relative"
+                  style={{ backgroundImage: `url(${backgroundImage})`, minHeight: '200px' }}
+                >
+                  <div className="absolute inset-0 bg-black/50 rounded-lg"></div>
+                  <div className="relative z-10 text-white">
+                    <h3 className="text-2xl font-heading font-bold mb-2">{previewData.course_name}</h3>
+                    <p className="text-sm mb-3">{previewData.course_description}</p>
+                    <div className="flex items-center justify-between text-sm">
+                      <span>By {previewData.instructor_name}</span>
+                      <span className="text-accent font-bold text-lg">${previewData.course_price}</span>
+                    </div>
                   </div>
                 </div>
 
                 <div className="mb-4">
                   <h4 className="text-sm font-medium text-zinc-700 mb-3">AI-Generated Form Fields:</h4>
-                  <div className="space-y-2">
-                    {generatedPage.generated_form_fields.map((field, idx) => (
+                  <div className="space-y-2 max-h-60 overflow-y-auto">
+                    {previewData.generated_form_fields.map((field, idx) => (
                       <div key={idx} className="bg-zinc-50 rounded-lg p-3">
                         <p className="text-sm font-medium text-zinc-900">{field.label}</p>
                         <p className="text-xs text-zinc-500">{field.type} {field.required && '(Required)'}</p>
@@ -172,20 +207,45 @@ const LandingPageBuilder = () => {
                   </div>
                 </div>
 
+                <button
+                  onClick={handleCreateLandingPage}
+                  data-testid="create-landing-page-button"
+                  className="w-full bg-accent text-accent-foreground hover:bg-orange-700 shadow-lg shadow-orange-500/20 rounded-full py-3 font-medium transition-all active:scale-95"
+                >
+                  Create Landing Page
+                </button>
+              </div>
+            ) : generatedPage ? (
+              <div data-testid="generated-page-preview">
+                <div 
+                  className="bg-cover bg-center rounded-lg p-6 mb-4 relative"
+                  style={{ backgroundImage: `url(${backgroundImage})`, minHeight: '200px' }}
+                >
+                  <div className="absolute inset-0 bg-black/50 rounded-lg"></div>
+                  <div className="relative z-10 text-white">
+                    <h3 className="text-2xl font-heading font-bold mb-2">{generatedPage.course_name}</h3>
+                    <p className="text-sm mb-3">{generatedPage.course_description}</p>
+                    <div className="flex items-center justify-between text-sm">
+                      <span>By {generatedPage.instructor_name}</span>
+                      <span className="text-accent font-bold text-lg">${generatedPage.course_price}</span>
+                    </div>
+                  </div>
+                </div>
+
                 <div className="bg-accent/10 rounded-lg p-4">
                   <p className="text-sm font-medium text-zinc-700 mb-2">Public Lead Form URL:</p>
                   <div className="flex gap-2">
                     <input
                       type="text"
-                      value={leadFormUrl}
+                      value={`${window.location.origin}/lead/${generatedPage.id}`}
                       readOnly
                       data-testid="lead-form-url"
                       className="flex-1 px-3 py-2 bg-white border border-zinc-200 rounded-lg text-xs"
                     />
                     <button
                       onClick={() => {
-                        navigator.clipboard.writeText(leadFormUrl);
-                        toast.success('URL copied!');
+                        navigator.clipboard.writeText(`${window.location.origin}/lead/${generatedPage.id}`);
+                        toast.success('URL copied to clipboard!');
                       }}
                       data-testid="copy-url-button"
                       className="px-4 py-2 bg-accent text-accent-foreground rounded-lg text-xs font-medium hover:bg-orange-700 transition-colors"
