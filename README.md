@@ -191,7 +191,10 @@ http://localhost:3000
 
 ## 🎥 Loom Walkthrough
 
-[Your Loom video link will go here]
+https://www.loom.com/share/9f5677e408364912acdb6041da7a30c9
+https://www.loom.com/share/5c6eb5eef55a4651802a01f3514f80b9
+https://www.loom.com/share/07c3c486971041689d20842721f24b23
+
 
 ## 🔑 API Documentation
 
